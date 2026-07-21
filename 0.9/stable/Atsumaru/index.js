@@ -1340,7 +1340,7 @@ var source = (function (e) {
             let originalURL = e.image.startsWith(`http`)
               ? e.image
               : `${j}${e.image}`;
-            return `https://atsumaru-proxy.thomasqt.workers.dev/?url=${encodeURIComponent(originalUrl)}`;
+            return `https://atsumaru-proxy.thomasqt.workers.dev/?url=${encodeURIComponent(originalURL)}`;
           }),
       };
     }
