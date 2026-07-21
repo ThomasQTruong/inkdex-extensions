@@ -1340,7 +1340,9 @@ var source = (function (e) {
             let originalURL = e.image.startsWith(`http`)
               ? e.image
               : `${j}${e.image}`;
-            return `https://atsumaru-proxy.thomasqt.workers.dev/?url=${encodeURIComponent(originalURL)}`;
+            let proxyURL = `https://atsumaru-proxy.thomasqt.workers.dev/?url=${encodeURIComponent(originalURL)}`;
+
+            return `https://wsrv.nl/?url=${encodeURIComponent(proxyURL)}&output=jpg`;
           }),
       };
     }
