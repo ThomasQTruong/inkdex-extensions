@@ -196,19 +196,63 @@ var source = (function (e) {
   function p(e, t) {
     return { ...t, id: e, type: `toggleRow`, isHidden: t.isHidden ?? !1 };
   }
-  function m(e, t) {
-    return h(e, {
-      form: new g(t.title, t),
+  function ee(e, t) {
+    let n = Object.keys(t.value).length;
+    return m(e, {
+      form: new ne(t.title, t),
+      title: t.title,
+      subtitle: t.subtitle,
+      value:
+        n == 1
+          ? `${(`items` in t ? t.items.find((e) => e.id == t.value[0])?.title : t.options.find((e) => e.id == t.value[0])?.title) ?? `1 item`}`
+          : `${Object.keys(t.value).length} items`,
+      isHidden: t.isHidden,
+    });
+  }
+  function te(e, t) {
+    return m(e, {
+      form: new re(t.title, t),
       title: t.title,
       subtitle: t.subtitle,
       value: `${Object.keys(t.value).length} items`,
       isHidden: t.isHidden,
     });
   }
-  function h(e, t) {
+  function m(e, t) {
     return { ...t, id: e, type: `navigationRow`, isHidden: t.isHidden ?? !1 };
   }
-  var g = class extends a {
+  var ne = class extends a {
+      constructor(e, t) {
+        (super(),
+          i(this, `title`, void 0),
+          i(this, `params`, void 0),
+          i(this, `states`, []),
+          i(this, `requiresExplicitSubmission`, !0),
+          (this.title = e),
+          (this.params = t),
+          (this.states = [...t.value]));
+      }
+      getSections() {
+        return [
+          l(this, {
+            id: `select`,
+            value: this.states,
+            layout: `layout` in this.params ? this.params.layout : `list`,
+            items:
+              `items` in this.params ? this.params.items : this.params.options,
+            minItemCount: this.params.minItemCount,
+            maxItemCount: this.params.maxItemCount,
+            isHidden: this.params.isHidden,
+          }),
+        ];
+      }
+      async formDidSubmit() {
+        await Application.SelectorRegistry.selector(this.params.onValueChange)(
+          this.states,
+        );
+      }
+    },
+    re = class extends a {
       constructor(e, t) {
         (super(),
           i(this, `title`, void 0),
@@ -238,14 +282,14 @@ var source = (function (e) {
         );
       }
     },
-    ee = class extends a {
+    h = class extends a {
       constructor(...e) {
         (super(...e), i(this, `requiresExplicitSubmission`, !0));
       }
       async formDidSubmit() {}
       formDidCancel() {}
     },
-    _ = class {
+    g = class {
       constructor(e) {
         (i(this, `id`, void 0), (this.id = e));
       }
@@ -260,24 +304,24 @@ var source = (function (e) {
         Application.unregisterInterceptor(this.id);
       }
     };
-  let v = {},
-    y = {},
-    b = async (e) => {
-      if (v[e]) {
-        (await v[e], await b(e));
+  let _ = {},
+    v = {},
+    y = async (e) => {
+      if (_[e]) {
+        (await _[e], await y(e));
         return;
       }
-      v[e] = new Promise(
+      _[e] = new Promise(
         (t) =>
-          (y[e] = () => {
-            (delete v[e], t());
+          (v[e] = () => {
+            (delete _[e], t());
           }),
       );
     },
-    x = (e) => {
-      y[e] && y[e]();
+    ie = (e) => {
+      v[e] && v[e]();
     };
-  var S = class extends _ {
+  var b = class extends g {
       constructor(e, t) {
         (super(e),
           i(this, `options`, void 0),
@@ -294,9 +338,9 @@ var source = (function (e) {
       async interceptRequest(e) {
         return this.options.ignoreImages && this.imageRegex.test(e.url)
           ? e
-          : (await b(this.id),
+          : (await y(this.id),
             await this.incrementRequestCount(),
-            x(this.id),
+            ie(this.id),
             e);
       }
       async interceptResponse(e, t, n) {
@@ -321,7 +365,7 @@ var source = (function (e) {
         }
       }
     },
-    C = class extends Error {
+    ae = class extends Error {
       constructor(e, t = `Cloudflare bypass is required`) {
         (super(t),
           i(this, `resolutionRequest`, void 0),
@@ -329,7 +373,7 @@ var source = (function (e) {
           (this.resolutionRequest = e));
       }
     };
-  function w(e) {
+  function oe(e) {
     let t = {},
       n = e.match(
         /^(?:([a-zA-Z][a-zA-Z\d+\-.]*):)?(?:\/\/([^/?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))?$/,
@@ -389,7 +433,7 @@ var source = (function (e) {
     }
     return (n[5] !== void 0 && (t.fragment = n[5]), t);
   }
-  var T = class {
+  var x = class {
     constructor(e) {
       (i(this, `protocol`, void 0),
         i(this, `hostname`, void 0),
@@ -399,7 +443,7 @@ var source = (function (e) {
         i(this, `port`, void 0),
         i(this, `queryItems`, void 0),
         i(this, `fragment`, void 0));
-      let t = w(e);
+      let t = oe(e);
       if (!t.hostname || !t.protocol)
         throw Error(`URL Hostname and Protocol are required`);
       ((this.hostname = t.hostname),
@@ -488,7 +532,7 @@ var source = (function (e) {
     update(e) {
       let t;
       return (
-        (t = typeof e == `string` ? w(e) : e),
+        (t = typeof e == `string` ? oe(e) : e),
         t.protocol !== void 0 && this.setProtocol(t.protocol),
         t.username !== void 0 && this.setUsername(t.username),
         t.password !== void 0 && this.setPassword(t.password),
@@ -501,8 +545,8 @@ var source = (function (e) {
       );
     }
   };
-  let E = `cookie_store_cookies`;
-  var D = class extends _ {
+  let S = `cookie_store_cookies`;
+  var C = class extends g {
       get cookies() {
         return Object.freeze(Object.values(this._cookies));
       }
@@ -552,7 +596,7 @@ var source = (function (e) {
         delete this._cookies[this.cookieIdentifier(e)];
       }
       cookiesForUrl(e) {
-        let t = new T(e),
+        let t = new x(e),
           n = t.hostname;
         if (!n) return [];
         let r = {},
@@ -606,7 +650,7 @@ var source = (function (e) {
       }
       loadCookiesFromStorage() {
         if (this.options.storage == `memory`) return;
-        let e = Application.getState(E);
+        let e = Application.getState(S);
         if (!e) {
           this._cookies = {};
           return;
@@ -622,11 +666,11 @@ var source = (function (e) {
         this.options.storage != `memory` &&
           Application.setState(
             this.cookies.filter((e) => e.expires),
-            E,
+            S,
           );
       }
     },
-    O;
+    w;
   (function (e) {
     ((e[(e.NONE = 0)] = `NONE`),
       (e[(e.MANGA_CHAPTERS = 1)] = `MANGA_CHAPTERS`),
@@ -647,43 +691,158 @@ var source = (function (e) {
       (e[(e.MANGA_SEARCH = 64)] = `MANGA_SEARCH`),
       (e[(e.SEARCH_RESULTS_PROVIDING = 64)] = `SEARCH_RESULTS_PROVIDING`),
       (e[(e.SEARCH_RESULT_PROVIDING = 64)] = `SEARCH_RESULT_PROVIDING`));
-  })(O || (O = {}));
-  var k;
+  })(w || (w = {}));
+  var T;
   (function (e) {
     ((e.EVERYONE = `SAFE`), (e.MATURE = `MATURE`), (e.ADULT = `ADULT`));
-  })(k || (k = {}));
-  var A;
+  })(T || (T = {}));
+  var E;
   ((function (e) {
     ((e[(e.featured = 0)] = `featured`),
       (e[(e.simpleCarousel = 1)] = `simpleCarousel`),
       (e[(e.prominentCarousel = 2)] = `prominentCarousel`),
       (e[(e.chapterUpdates = 3)] = `chapterUpdates`),
       (e[(e.genres = 4)] = `genres`));
-  })(A || (A = {})),
+  })(E || (E = {})),
     Object.freeze({ items: [], metadata: void 0 }));
-  let j = `https://atsu.moe`;
-  var M = class extends _ {
-    async interceptRequest(e) {
-      return {
-        ...e,
-        headers: {
-          ...e.headers,
-          referer: `${j}/`,
-          "user-agent": await Application.getDefaultUserAgent(),
-        },
-      };
+  let D = `https://atsu.moe`,
+    O = `atsumaru-home-section`,
+    k = [
+      { id: `Manga`, title: `Manga` },
+      { id: `Manwha`, title: `Manhwa` },
+      { id: `Manhua`, title: `Manhua` },
+      { id: `OEL`, title: `OEL` },
+    ],
+    se = [`Manga`, `Manwha`, `Manhua`, `OEL`],
+    A = [
+      { id: `Safe`, title: `Safe` },
+      { id: `Suggestive`, title: `Suggestive` },
+      { id: `Erotica`, title: `Erotica` },
+      { id: `Pornographic`, title: `Pornographic` },
+    ],
+    ce = [`Safe`, `Suggestive`, `Erotica`];
+  var le = class extends a {
+    getSections() {
+      let e = N(),
+        t = P(),
+        n = F();
+      return [
+        s(
+          {
+            id: `types`,
+            footer: `Choose which content types appear in Discover and Search.`,
+          },
+          [
+            ee(`content-types`, {
+              title: `Types`,
+              subtitle: k
+                .filter((e) => n.includes(e.id))
+                .map((e) => e.title)
+                .join(`, `),
+              value: n,
+              minItemCount: 1,
+              maxItemCount: k.length,
+              options: k,
+              onValueChange: Application.Selector(
+                this,
+                `handleContentTypesChange`,
+              ),
+            }),
+          ],
+        ),
+        s(
+          {
+            id: `content`,
+            footer: `Normal Catalog shows the selected ratings. Adult Only Catalog only shows adult content.`,
+          },
+          [
+            p(`adult-mode`, {
+              title: `Adult Only Catalog`,
+              subtitle: `Show only adult content`,
+              value: e,
+              onValueChange: Application.Selector(
+                this,
+                `handleAdultModeChange`,
+              ),
+            }),
+            ...(e
+              ? []
+              : [
+                  ee(`content-ratings`, {
+                    title: `Content Ratings`,
+                    subtitle: t.join(`, `),
+                    value: t,
+                    minItemCount: 1,
+                    maxItemCount: A.length,
+                    options: A,
+                    onValueChange: Application.Selector(
+                      this,
+                      `handleContentRatingsChange`,
+                    ),
+                  }),
+                ]),
+          ],
+        ),
+      ];
     }
-    async interceptResponse(e, t, n) {
-      if (t.headers?.[`cf-mitigated`] === `challenge`)
-        throw new C({
-          url: e.url,
-          method: e.method ?? `GET`,
-          headers: { "user-agent": await Application.getDefaultUserAgent() },
-        });
-      return n;
+    async handleAdultModeChange(e) {
+      (de(e), this.reloadForm());
+    }
+    async handleContentRatingsChange(e) {
+      (fe(e), this.reloadForm());
+    }
+    async handleContentTypesChange(e) {
+      (pe(e), this.reloadForm());
     }
   };
-  async function N(e) {
+  let j = `atsumaru-show-adult`,
+    M = `atsumaru-content-ratings`,
+    ue = `atsumaru-content-types`;
+  function N() {
+    return Application.getState(j) ?? !1;
+  }
+  function de(e) {
+    Application.setState(e, j);
+  }
+  function P() {
+    return Application.getState(M) ?? ce;
+  }
+  function fe(e) {
+    Application.setState(e, M);
+  }
+  function F() {
+    return Application.getState(ue) ?? se;
+  }
+  function pe(e) {
+    Application.setState(e, ue);
+  }
+  var me = class {
+      async getSettingsForm() {
+        return new le();
+      }
+    },
+    he = class extends g {
+      async interceptRequest(e) {
+        return {
+          ...e,
+          headers: {
+            ...e.headers,
+            referer: `${D}/`,
+            "user-agent": await Application.getDefaultUserAgent(),
+          },
+        };
+      }
+      async interceptResponse(e, t, n) {
+        if (t.headers?.[`cf-mitigated`] === `challenge`)
+          throw new ae({
+            url: e.url,
+            method: e.method ?? `GET`,
+            headers: { "user-agent": await Application.getDefaultUserAgent() },
+          });
+        return n;
+      }
+    };
+  async function I(e) {
     let [t, n] = await Application.scheduleRequest(e);
     if (t.status !== 200)
       throw Error(`Request failed with status ${t.status}: ${e.url}`);
@@ -695,21 +854,38 @@ var source = (function (e) {
       throw Error(`Failed to parse JSON from ${e.url}: ${n}`);
     }
   }
-  async function P(e) {
+  async function L(e) {
     let [t, n] = await Application.scheduleRequest(e);
     if (t.status !== 200)
       throw Error(`Request failed with status ${t.status}: ${e.url}`);
     let r = Application.arrayBufferToUTF8String(n);
     return typeof r == `string` ? r : String(r);
   }
-  var F;
+  let R = async (e, t, n = {}) => {
+    let r = new x(D)
+      .addPathComponent(`api`)
+      .addPathComponent(`home2`)
+      .addPathComponent(e)
+      .setQueryItem(`offset`, String(t * 20))
+      .setQueryItem(`limit`, `20`);
+    return (
+      n.genre && r.setQueryItem(`genre`, n.genre),
+      n.timeframe && r.setQueryItem(`timeframe`, n.timeframe),
+      r.setQueryItem(`types`, F().join(`,`)),
+      N()
+        ? r.setQueryItem(`adult`, `1`)
+        : r.setQueryItem(`contentRatings`, P().join(`,`)),
+      (await I({ url: r.toString(), method: `GET` })).items
+    );
+  };
+  var z;
   (function (e) {
     ((e.singleRowNormal = `singleRowNormal`),
       (e.singleRowLarge = `singleRowLarge`),
       (e.doubleRow = `doubleRow`),
       (e.featured = `featured`));
-  })(F || (F = {}));
-  var I;
+  })(z || (z = {}));
+  var B;
   (function (e) {
     ((e[(e.MANGA_CHAPTERS = 1)] = `MANGA_CHAPTERS`),
       (e[(e.MANGA_TRACKING = 2)] = `MANGA_TRACKING`),
@@ -717,21 +893,21 @@ var source = (function (e) {
       (e[(e.COLLECTION_MANAGEMENT = 8)] = `COLLECTION_MANAGEMENT`),
       (e[(e.CLOUDFLARE_BYPASS_REQUIRED = 16)] = `CLOUDFLARE_BYPASS_REQUIRED`),
       (e[(e.SETTINGS_UI = 32)] = `SETTINGS_UI`));
-  })(I || (I = {}));
-  var L;
+  })(B || (B = {}));
+  var V;
   (function (e) {
     ((e.EVERYONE = `EVERYONE`), (e.MATURE = `MATURE`), (e.ADULT = `ADULT`));
-  })(L || (L = {}));
-  var R;
+  })(V || (V = {}));
+  var H;
   (function (e) {
     ((e.BLUE = `default`),
       (e.GREEN = `success`),
       (e.GREY = `info`),
       (e.YELLOW = `warning`),
       (e.RED = `danger`));
-  })(R || (R = {}));
-  let z = {};
-  z.createSourceStateManager = function () {
+  })(H || (H = {}));
+  let U = {};
+  U.createSourceStateManager = function () {
     return {
       keychain: {
         async store(e, t) {
@@ -749,7 +925,7 @@ var source = (function (e) {
       },
     };
   };
-  function B(e) {
+  function W(e) {
     let t = e.url;
     e.param && (t += e.param);
     let n = {};
@@ -762,7 +938,7 @@ var source = (function (e) {
       cookies: n,
     };
   }
-  function te(e) {
+  function ge(e) {
     return {
       url: e.url,
       method: e.method,
@@ -775,8 +951,8 @@ var source = (function (e) {
       data: e.body,
     };
   }
-  ((z.createRequestManager = function (e) {
-    let t = new (class extends _ {
+  ((U.createRequestManager = function (e) {
+    let t = new (class extends g {
         constructor(e) {
           (super(`main`),
             i(this, `legacyInterceptor`, void 0),
@@ -784,19 +960,19 @@ var source = (function (e) {
         }
         async interceptRequest(e) {
           if (!this.legacyInterceptor) return e;
-          let t = te(e);
-          return B(await this.legacyInterceptor.interceptRequest(t));
+          let t = ge(e);
+          return W(await this.legacyInterceptor.interceptRequest(t));
         }
         async interceptResponse(e, t, n) {
           return (this.legacyInterceptor, n);
         }
       })(e.interceptor),
-      n = new S(`rateLimit`, {
+      n = new b(`rateLimit`, {
         numberOfRequests: e.requestsPerSecond ?? 2,
         bufferInterval: 1,
         ignoreImages: !0,
       }),
-      r = new D({ storage: `memory` });
+      r = new C({ storage: `memory` });
     return (
       t.registerInterceptor(),
       n.registerInterceptor(),
@@ -823,7 +999,7 @@ var source = (function (e) {
         requestsPerSecond: e.requestsPerSecond ?? 2,
         requestTimeout: e.requestTimeout ?? 3e4,
         async schedule(e) {
-          let t = B(e);
+          let t = W(e);
           console.log(`[COMPAT] SCHEDULING REQUEST TO ` + t.url);
           let [n, r] = await Application.scheduleRequest(t);
           return {
@@ -839,7 +1015,7 @@ var source = (function (e) {
       }
     );
   }),
-    (globalThis.App = new Proxy(z, {
+    (globalThis.App = new Proxy(U, {
       get(e, t) {
         if (e[t]) return e[t];
         if (typeof t == `string` && t.startsWith(`create`)) {
@@ -852,138 +1028,113 @@ var source = (function (e) {
         }
       },
     })));
-  var ne = class extends ee {
-      constructor(e, t) {
-        (super(),
-          i(this, `filters`, void 0),
-          i(this, `selectedFilterValues`, void 0),
-          (this.selectedFilterValues = {}));
-        for (let t of e ?? []) this.selectedFilterValues[t.id] = t.value;
-        t instanceof Promise
-          ? ((this.filters = void 0),
-            t
-              .then((e) => (this.filters = e))
-              .catch((e) => (this.filters = e))
-              .finally(() => this.reloadForm()))
-          : (this.filters = t);
-      }
-      getSections() {
-        return this.filters
-          ? this.filters instanceof Error
-            ? [
-                s(`error`, [
-                  d(`error`, {
-                    title: `Error loading search filters`,
-                    subtitle: this.filters.message,
-                  }),
-                ]),
-              ]
-            : this.filters.map((e) => {
-                switch (e.type) {
-                  case `dropdown`: {
-                    let t = [this.selectedFilterValues[e.id] ?? e.value];
-                    return l(this, {
-                      id: e.id,
-                      header: e.title,
+  var _e = class extends h {
+    constructor(e, t) {
+      (super(),
+        i(this, `filters`, void 0),
+        i(this, `selectedFilterValues`, void 0),
+        (this.selectedFilterValues = {}));
+      for (let t of e ?? []) this.selectedFilterValues[t.id] = t.value;
+      t instanceof Promise
+        ? ((this.filters = void 0),
+          t
+            .then((e) => (this.filters = e))
+            .catch((e) => (this.filters = e))
+            .finally(() => this.reloadForm()))
+        : (this.filters = t);
+    }
+    getSections() {
+      return this.filters
+        ? this.filters instanceof Error
+          ? [
+              s(`error`, [
+                d(`error`, {
+                  title: `Error loading search filters`,
+                  subtitle: this.filters.message,
+                }),
+              ]),
+            ]
+          : this.filters.map((e) => {
+              switch (e.type) {
+                case `dropdown`: {
+                  let t = [this.selectedFilterValues[e.id] ?? e.value];
+                  return l(this, {
+                    id: e.id,
+                    header: e.title,
+                    value: t,
+                    onValueChange: o(this, e.id, async () => {
+                      this.selectedFilterValues[e.id] = t[0];
+                    }),
+                    layout: `list`,
+                    items: e.options.map((e) => ({ id: e.id, title: e.value })),
+                    minItemCount: 1,
+                    maxItemCount: 1,
+                  });
+                }
+                case `multiselect`: {
+                  let t = this.selectedFilterValues[e.id] ?? e.value;
+                  return s({ id: e.id }, [
+                    te(e.id, {
+                      title: e.title,
+                      layout: `flow`,
                       value: t,
-                      onValueChange: o(this, e.id, async () => {
-                        this.selectedFilterValues[e.id] = t[0];
-                      }),
-                      layout: `list`,
                       items: e.options.map((e) => ({
                         id: e.id,
                         title: e.value,
                       })),
-                      minItemCount: 1,
-                      maxItemCount: 1,
-                    });
-                  }
-                  case `multiselect`: {
-                    let t = this.selectedFilterValues[e.id] ?? e.value;
-                    return s({ id: e.id }, [
-                      m(e.id, {
-                        title: e.title,
-                        layout: `flow`,
-                        value: t,
-                        items: e.options.map((e) => ({
-                          id: e.id,
-                          title: e.value,
-                        })),
-                        allowExclusion: e.allowExclusion,
-                        allowEmptySelection: e.allowEmptySelection,
-                        maximum: e.maximum,
-                        onValueChange: o(this, e.id, async (t) => {
-                          ((this.selectedFilterValues[e.id] = t),
-                            this.reloadForm());
-                        }),
+                      allowExclusion: e.allowExclusion,
+                      allowEmptySelection: e.allowEmptySelection,
+                      maximum: e.maximum,
+                      onValueChange: o(this, e.id, async (t) => {
+                        ((this.selectedFilterValues[e.id] = t),
+                          this.reloadForm());
                       }),
-                    ]);
-                  }
-                  case `input`: {
-                    let t = this.selectedFilterValues[e.id] ?? e.value;
-                    return s({ id: e.id, header: e.title }, [
-                      f(e.id, {
-                        title: e.title,
-                        value: t,
-                        onValueChange: o(this, e.id, async (t) => {
-                          ((this.selectedFilterValues[e.id] = t),
-                            this.reloadForm());
-                        }),
-                      }),
-                    ]);
-                  }
+                    }),
+                  ]);
                 }
-              })
-          : [s(`loading`, [d(`loading`, { title: `Loading Filters` })])];
-      }
-      getSearchQueryMetadata() {
-        return this.filters && !(this.filters instanceof Error)
-          ? this.filters.map((e) => ({
-              id: e.id,
-              value: this.selectedFilterValues[e.id] ?? e.value,
-            }))
-          : [];
-      }
-      async formDidSubmit() {
-        if (!this.filters) throw Error(`Search filters are loading`);
-        if (this.filters instanceof Error) throw this.filters;
-      }
-    },
-    V = class extends a {
-      getSections() {
-        return [
-          s(
-            {
-              id: `adult-content`,
-              footer: `Enable this to show adult/NSFW content across discover and search results. This setting is off by default.`,
-            },
-            [this.showAdultRow()],
-          ),
-        ];
-      }
-      showAdultRow() {
-        return p(`show-adult`, {
-          title: `Show Adult Content`,
-          value: H(),
-          onValueChange: Application.Selector(this, `handleShowAdultChange`),
-        });
-      }
-      async handleShowAdultChange(e) {
-        (U(e), this.reloadForm());
-      }
-    };
-  function H() {
-    return Application.getState(`atsumaru-show-adult`) ?? !1;
-  }
-  function U(e) {
-    Application.setState(e, `atsumaru-show-adult`);
-  }
-  var W = class {
-    async getSettingsForm() {
-      return new V();
+                case `input`: {
+                  let t = this.selectedFilterValues[e.id] ?? e.value;
+                  return s({ id: e.id, header: e.title }, [
+                    f(e.id, {
+                      title: e.title,
+                      value: t,
+                      onValueChange: o(this, e.id, async (t) => {
+                        ((this.selectedFilterValues[e.id] = t),
+                          this.reloadForm());
+                      }),
+                    }),
+                  ]);
+                }
+              }
+            })
+        : [s(`loading`, [d(`loading`, { title: `Loading Filters` })])];
+    }
+    getSearchQueryMetadata() {
+      return this.filters && !(this.filters instanceof Error)
+        ? this.filters.map((e) => ({
+            id: e.id,
+            value: this.selectedFilterValues[e.id] ?? e.value,
+          }))
+        : [];
+    }
+    async formDidSubmit() {
+      if (!this.filters) throw Error(`Search filters are loading`);
+      if (this.filters instanceof Error) throw this.filters;
     }
   };
   function G(e, t) {
+    return e || t === `Erotica` || t === `Pornographic`
+      ? T.ADULT
+      : t === `Suggestive`
+        ? T.MATURE
+        : T.EVERYONE;
+  }
+  function K(e) {
+    let t = e.match(/window\.mangaPage\s*=\s*({[\s\S]*?});/);
+    if (!t) throw Error(`Could not find manga data in page`);
+    return JSON.parse(t[1]).mangaPage;
+  }
+  function ve(e, t) {
     t.forEach((t) => {
       Object.getOwnPropertyNames(t.prototype).forEach((n) => {
         Object.defineProperty(
@@ -995,7 +1146,7 @@ var source = (function (e) {
       });
     });
   }
-  function K(e) {
+  function q(e) {
     let t =
       typeof e == `string`
         ? e
@@ -1003,21 +1154,37 @@ var source = (function (e) {
     return t
       ? t.startsWith(`http`)
         ? t
-        : `${j}${t.startsWith(`/`) ? t : `/static/${t}`}`
+        : `${D}${t.startsWith(`/`) ? t : `/static/${t}`}`
       : ``;
   }
-  function q() {
-    return H() ? k.ADULT : k.EVERYONE;
-  }
-  function J(e) {
-    let t = e.match(/window\.mangaPage\s*=\s*({[\s\S]*?});/);
-    if (!t) throw Error(`Could not find manga data in page`);
-    return JSON.parse(t[1]).mangaPage;
-  }
+  var ye = class extends h {
+    constructor(e) {
+      (super(), (this.filters = e));
+    }
+    getSections() {
+      return [];
+    }
+    getSearchQueryMetadata() {
+      return this.filters;
+    }
+  };
+  let J = (e) => {
+    let t = e?.find((e) => e.id === O)?.value;
+    if (typeof t != `string`) return;
+    let [n, r, i] = t.split(`:`);
+    if (
+      !(
+        i !== void 0 ||
+        (n !== `mostBookmarked` && n !== `mostTalkedAbout`) ||
+        (r !== `daily` && r !== `weekly` && r !== `monthly` && r !== `all`)
+      )
+    )
+      return { endpoint: n, timeframe: r };
+  };
   function Y(e) {
     return e.replace(/\D/g, ``);
   }
-  function X(e) {
+  function be(e) {
     let t = [],
       n = [],
       r = [],
@@ -1067,7 +1234,7 @@ var source = (function (e) {
         `true`,
     };
   }
-  var re = class extends ne {
+  var xe = class extends _e {
     getSections() {
       return super.getSections().map((e) => ({
         ...e,
@@ -1086,46 +1253,47 @@ var source = (function (e) {
       ((this.selectedFilterValues.minChapters = Y(e)), this.reloadForm());
     }
   };
-  function Z(e) {
+  function X(e) {
     return `\`${e.replace(/\\/g, `\\\\`).replace(/`/g, "\\`")}\``;
   }
-  function ie() {
+  function Se() {
     let e = [];
     for (let t = new Date().getFullYear() + 1; t >= 1970; t--)
       e.push({ id: String(t), value: String(t) });
     return e;
   }
-  var Q = class {
+  var Z = class {
     async getSearchFilters() {
-      let e = await N({
-          url: new T(j)
+      let e = await I({
+          url: new x(D)
             .addPathComponent(`api`)
             .addPathComponent(`explore`)
             .addPathComponent(`availableFilters`)
             .toString(),
           method: `GET`,
         }),
-        t = [];
+        t = F(),
+        n = [];
+      e.genres &&
+        e.genres.length > 0 &&
+        n.push({
+          type: `multiselect`,
+          id: `tags`,
+          title: `Tags`,
+          options: e.genres.map((e) => ({ id: e.id, value: e.name })),
+          value: {},
+          allowExclusion: !0,
+          allowEmptySelection: !0,
+          maximum: void 0,
+        });
+      let r = e.types.filter((e) => t.some((t) => t === e.id));
       return (
-        e.genres &&
-          e.genres.length > 0 &&
-          t.push({
-            type: `multiselect`,
-            id: `tags`,
-            title: `Tags`,
-            options: e.genres.map((e) => ({ id: e.id, value: e.name })),
-            value: {},
-            allowExclusion: !0,
-            allowEmptySelection: !0,
-            maximum: void 0,
-          }),
-        e.types &&
-          e.types.length > 0 &&
-          t.push({
+        r.length > 0 &&
+          n.push({
             type: `multiselect`,
             id: `types`,
             title: `Types`,
-            options: e.types.map((e) => ({ id: e.id, value: e.name })),
+            options: r.map((e) => ({ id: e.id, value: e.name })),
             value: {},
             allowExclusion: !1,
             allowEmptySelection: !0,
@@ -1133,7 +1301,7 @@ var source = (function (e) {
           }),
         e.statuses &&
           e.statuses.length > 0 &&
-          t.push({
+          n.push({
             type: `multiselect`,
             id: `statuses`,
             title: `Status`,
@@ -1143,24 +1311,24 @@ var source = (function (e) {
             allowEmptySelection: !0,
             maximum: void 0,
           }),
-        t.push({
+        n.push({
           type: `multiselect`,
           id: `years`,
           title: `Years`,
-          options: ie(),
+          options: Se(),
           value: {},
           allowExclusion: !1,
           allowEmptySelection: !0,
           maximum: void 0,
         }),
-        t.push({
+        n.push({
           type: `input`,
           id: `minChapters`,
           title: `Minimum Chapters`,
           placeholder: `0`,
           value: ``,
         }),
-        t.push({
+        n.push({
           type: `dropdown`,
           id: `officialTranslation`,
           title: `Official Translation`,
@@ -1170,78 +1338,104 @@ var source = (function (e) {
           ],
           value: ``,
         }),
-        t
+        n
       );
     }
-    async getSortingOptions() {
-      return [
-        { id: `views:desc`, label: `Popularity` },
-        { id: `trending:desc`, label: `Trending` },
-        { id: `dateAdded:desc`, label: `Date Added` },
-        { id: `releaseDate:desc`, label: `Release Date` },
-        { id: `mbRating:desc`, label: `Top Rated` },
-      ];
+    async getSortingOptions(e) {
+      return J(e?.metadata)
+        ? []
+        : [
+            { id: `views:desc`, label: `Popularity` },
+            { id: `trending:desc`, label: `Trending` },
+            { id: `dateAdded:desc`, label: `Date Added` },
+            { id: `releaseDate:desc`, label: `Release Date` },
+            { id: `mbRating:desc`, label: `Top Rated` },
+          ];
     }
     async getAdvancedSearchForm(e) {
-      return new re(e.metadata, this.getSearchFilters());
+      return J(e.metadata)
+        ? new ye(e.metadata ?? [])
+        : new xe(e.metadata, this.getSearchFilters());
     }
     async getSearchResults(e, t, n) {
       let r = t?.page ?? 1,
-        i = H(),
-        a = X(e),
-        o = e.title?.trim() || ``,
-        s = n?.id ?? `views:desc`,
-        c = [];
-      for (let e of a.includedTags) c.push(`genreIds:=${Z(e)}`);
-      (a.excludedTags.length > 0 &&
-        c.push(`genreIds:!=[${a.excludedTags.map((e) => Z(e)).join(`,`)}]`),
-        a.selectedTypes.length > 0 &&
-          c.push(`type:=[${a.selectedTypes.map((e) => Z(e)).join(`,`)}]`),
-        a.selectedStatuses.length > 0 &&
-          c.push(`status:=[${a.selectedStatuses.map((e) => Z(e)).join(`,`)}]`),
-        a.selectedYears.length > 0 &&
-          c.push(`releaseYear:=[${a.selectedYears.join(`,`)}]`),
-        a.minChapters !== null && c.push(`chapterCount:>=${a.minChapters}`),
-        a.officialTranslation && c.push(`officialTranslation:=true`),
-        i || c.push(`isAdult:=false`),
-        s === `mbRating:desc`
-          ? c.push(`mbRating:>0`)
-          : s === `views:desc` && c.push(`views:>0`));
-      let l = await N({
-          url: new T(j)
+        i = J(e.metadata);
+      if (i) {
+        let e = (
+          await R(i.endpoint, Math.max(0, r - 1), { timeframe: i.timeframe })
+        ).map((e) => ({
+          mangaId: e.id,
+          title: e.title,
+          imageUrl: q(e.mediumImage ?? e.smallImage ?? e.image),
+          subtitle: e.type,
+          contentRating: G(e.isAdult),
+        }));
+        return {
+          items: e,
+          metadata: e.length === 20 ? { page: r + 1 } : void 0,
+        };
+      }
+      let a = N(),
+        o = P(),
+        s = F(),
+        c = be(e),
+        l = e.title?.trim() || ``,
+        u = n?.id ?? `views:desc`,
+        d = [];
+      d.push(`type:=[${s.map((e) => X(e)).join(`,`)}]`);
+      for (let e of c.includedTags) d.push(`genreIds:=${X(e)}`);
+      (c.excludedTags.length > 0 &&
+        d.push(`genreIds:!=[${c.excludedTags.map((e) => X(e)).join(`,`)}]`),
+        c.selectedTypes.length > 0 &&
+          d.push(`type:=[${c.selectedTypes.map((e) => X(e)).join(`,`)}]`),
+        c.selectedStatuses.length > 0 &&
+          d.push(`status:=[${c.selectedStatuses.map((e) => X(e)).join(`,`)}]`),
+        c.selectedYears.length > 0 &&
+          d.push(`releaseYear:=[${c.selectedYears.join(`,`)}]`),
+        c.minChapters !== null && d.push(`chapterCount:>=${c.minChapters}`),
+        c.officialTranslation && d.push(`officialTranslation:=true`),
+        a
+          ? d.push(`isAdult:=true`)
+          : o.includes(`Pornographic`) || d.push(`isAdult:=false`),
+        a || d.push(`mbContentRating:=[${o.map((e) => X(e)).join(`,`)}]`),
+        u === `mbRating:desc`
+          ? d.push(`mbRating:>0`)
+          : u === `views:desc` && d.push(`views:>0`));
+      let f = await I({
+          url: new x(D)
             .addPathComponent(`collections`)
             .addPathComponent(`manga`)
             .addPathComponent(`documents`)
             .addPathComponent(`search`)
-            .setQueryItem(`q`, o || `*`)
+            .setQueryItem(`q`, l || `*`)
             .setQueryItem(`query_by`, `title,englishTitle,otherNames,authors`)
             .setQueryItem(`query_by_weights`, `4,3,2,1`)
             .setQueryItem(`num_typos`, `4,3,2,1`)
             .setQueryItem(
               `include_fields`,
-              `id,title,englishTitle,poster,posterSmall,posterMedium,type`,
+              `id,title,englishTitle,poster,posterSmall,posterMedium,type,isAdult,mbContentRating`,
             )
-            .setQueryItem(`filter_by`, c.join(` && `))
+            .setQueryItem(`filter_by`, d.join(` && `))
             .setQueryItem(`page`, String(r))
             .setQueryItem(`per_page`, `20`)
-            .setQueryItem(`sort_by`, s)
+            .setQueryItem(`sort_by`, u)
             .toString(),
           method: `GET`,
         }),
-        u = l.hits ?? [];
+        p = f.hits ?? [];
       return {
-        items: u.map(({ document: e }) => ({
+        items: p.map(({ document: e }) => ({
           mangaId: e.id,
-          title: e.title || e.englishTitle || ``,
-          imageUrl: K(e),
+          title: e.englishTitle || e.title || ``,
+          imageUrl: q(e),
           subtitle: e.type,
-          contentRating: q(),
+          contentRating: G(e.isAdult, e.mbContentRating),
         })),
-        metadata: r * 20 < l.found && u.length > 0 ? { page: r + 1 } : void 0,
+        metadata: r * 20 < f.found && p.length > 0 ? { page: r + 1 } : void 0,
       };
     }
   };
-  function ae(e, t, n) {
+  function Ce(e, t, n) {
     let r = e.chapters
       .map((e) => ({
         chapter: e,
@@ -1275,37 +1469,37 @@ var source = (function (e) {
       };
     });
   }
-  var oe = class {
+  var we = class {
     async getChapters(e) {
       let t = e.mangaId,
-        n = new T(j).addPathComponent(`manga`).addPathComponent(t).toString(),
+        n = new x(D).addPathComponent(`manga`).addPathComponent(t).toString(),
         r = { url: n, method: `GET` },
-        i = await P(r),
+        i = await L(r),
         a;
       try {
-        a = J(i);
+        a = K(i);
       } catch {
         let o = (
-          await new Q().getSearchResults({ title: e.mangaInfo.primaryTitle })
+          await new Z().getSearchResults({ title: e.mangaInfo.primaryTitle })
         ).items.find((t) => t.title === e.mangaInfo.primaryTitle)?.mangaId;
         if (!o)
           throw Error(
             `Could not resolve manga ID for: ${e.mangaInfo.primaryTitle}`,
           );
         ((t = o),
-          (n = new T(j)
+          (n = new x(D)
             .addPathComponent(`manga`)
             .addPathComponent(t)
             .toString()),
           (r = { url: n, method: `GET` }),
-          (i = await P(r)),
-          (a = J(i)));
+          (i = await L(r)),
+          (a = K(i)));
       }
       t = a.id;
       let o = new Map((a?.scanlators ?? []).map((e) => [e.id, e.name]));
-      return ae(
-        await N({
-          url: new T(j)
+      return Ce(
+        await I({
+          url: new x(D)
             .addPathComponent(`api`)
             .addPathComponent(`manga`)
             .addPathComponent(`allChapters`)
@@ -1324,8 +1518,8 @@ var source = (function (e) {
         id: n,
         mangaId: t,
         pages: (
-          await N({
-            url: new T(j)
+          await I({
+            url: new x(D)
               .addPathComponent(`api`)
               .addPathComponent(`read`)
               .addPathComponent(`chapter`)
@@ -1339,7 +1533,7 @@ var source = (function (e) {
           .map((e) => {
             let originalURL = e.image.startsWith(`http`)
               ? e.image
-              : `${j}${e.image}`;
+              : `${D}${e.image}`;
 
             // Does not contain cdn at the start.
             originalURL = originalURL.replace(
@@ -1359,99 +1553,141 @@ var source = (function (e) {
       };
     }
   };
-  function se(e) {
-    return e.homePage.sections
-      .filter((e) => e.layout === `carousel` && e.key !== `hot-updates`)
-      .map((e) => ({
-        id: e.key,
-        title: e.title || `Unknown`,
-        type: A.simpleCarousel,
+  let Te = [
+      { id: `daily`, title: `Daily` },
+      { id: `weekly`, title: `Weekly` },
+      { id: `monthly`, title: `Monthly` },
+      { id: `all`, title: `All Time` },
+    ],
+    Q = [
+      `Action`,
+      `Romance`,
+      `Fantasy`,
+      `Psychological`,
+      `Comedy`,
+      `Martial Arts`,
+      `Slice of Life`,
+      `Adventure`,
+      `Drama`,
+      `Sci-Fi`,
+      `Mystery`,
+      `Historical`,
+      `Supernatural`,
+      `Thriller`,
+      `Horror`,
+    ],
+    Ee = [
+      { id: `hot-updates`, title: `Hot Updates`, endpoint: `hotUpdates` },
+      {
+        id: `recently-updated`,
+        title: `Recently Updated`,
+        endpoint: `recentlyUpdated`,
+      },
+      {
+        id: `popular`,
+        title: `Popular`,
+        endpoint: `popular`,
+        timeframe: `daily`,
+      },
+      { id: `rising`, title: `Rising`, endpoint: `rising` },
+      { id: `hot-arrivals`, title: `Hot Arrivals`, endpoint: `hotArrivals` },
+      {
+        id: `most-bookmarked`,
+        title: `Most Bookmarked`,
+        endpoint: `mostBookmarked`,
+        usesTimeframes: !0,
+      },
+      { id: `genre-spotlight`, title: `Spotlight`, endpoint: `genreSpotlight` },
+      {
+        id: `most-talked-about`,
+        title: `Most Talked About`,
+        endpoint: `mostTalkedAbout`,
+        usesTimeframes: !0,
+      },
+      {
+        id: `recently-added`,
+        title: `Recently Added`,
+        endpoint: `recentlyAdded`,
+      },
+      { id: `binge-worthy`, title: `Binge-Worthy`, endpoint: `bingeWorthy` },
+      {
+        id: `most-polarizing`,
+        title: `Most Polarizing`,
+        endpoint: `mostPolarizing`,
+      },
+      { id: `hidden-gems`, title: `Hidden Gems`, endpoint: `hiddenGems` },
+      { id: `top-rated`, title: `Top Rated`, endpoint: `topRated` },
+    ],
+    De = (e) => Q[Math.floor(e.getTime() / 864e5) % Q.length] ?? Q[0],
+    Oe = (e = new Date()) => {
+      let t = De(e);
+      return Ee.map((e) => ({
+        ...e,
+        title: e.id === `genre-spotlight` ? `Spotlight: ${t}` : e.title,
       }));
-  }
-  function ce(e, t) {
-    let n = e.homePage.sections.find((e) => e.key === t);
-    return !n || !n.items
-      ? []
-      : n.items.map((e) => ({
-          type: `simpleCarouselItem`,
-          mangaId: e.id,
-          title: e.title,
-          imageUrl: K(e.image),
-          subtitle: e.type,
-          contentRating: q(),
-        }));
-  }
-  var le = class {
+    };
+  var ke = class {
     async getDiscoverSections() {
-      let e = H(),
-        t = new T(j)
-          .addPathComponent(`api`)
-          .addPathComponent(`home`)
-          .addPathComponent(`page`);
-      return (
-        e && t.setQueryItem(`adult`, `1`),
-        se(await N({ url: t.toString(), method: `GET` }))
-      );
+      return Oe().map((e) => ({
+        id: e.id,
+        title: e.title,
+        type: e.usesTimeframes ? E.genres : E.simpleCarousel,
+      }));
     }
     async getDiscoverSectionItems(e, t) {
-      let n = H();
-      if (e.id === `top-rated`) {
-        let t = new T(j)
-          .addPathComponent(`api`)
-          .addPathComponent(`home`)
-          .addPathComponent(`page`);
-        return (
-          n && t.setQueryItem(`adult`, `1`),
-          {
-            items: ce(await N({ url: t.toString(), method: `GET` }), e.id),
-            metadata: void 0,
-          }
-        );
-      }
+      let n = Oe().find((t) => t.id === e.id);
+      if (!n) throw Error(`Unknown section: ${e.id}`);
+      if (n.usesTimeframes)
+        return {
+          items: Te.map((e) => ({
+            type: `genresCarouselItem`,
+            name: e.title,
+            searchQuery: {
+              title: `${n.title}: ${e.title}`,
+              metadata: [{ id: O, value: `${n.endpoint}:${e.id}` }],
+            },
+            contentRating: G(N()),
+          })),
+          metadata: void 0,
+        };
       let r = t?.page ?? 0,
-        i = {
-          "trending-carousel": `trending`,
-          "most-bookmarked": `mostBookmarked`,
-          "recently-updated": `recentlyUpdated`,
-          popular: `popular`,
-          "recently-added": `recentlyAdded`,
-        }[e.id];
-      if (!i) throw Error(`Unknown section: ${e.id}`);
-      let a = new T(j)
-        .addPathComponent(`api`)
-        .addPathComponent(`infinite`)
-        .addPathComponent(i)
-        .setQueryItem(`page`, r.toString())
-        .setQueryItem(`types`, `Manga,Manwha,Manhua`);
-      n && a.setQueryItem(`adult`, `1`);
-      let o = (await N({ url: a.toString(), method: `GET` })).items.map(
-        (e) => ({
-          type: `simpleCarouselItem`,
-          mangaId: e.id,
-          title: e.title,
-          imageUrl: K(e.image),
-          subtitle: e.type,
-          contentRating: q(),
-        }),
-      );
-      return { items: o, metadata: o.length > 0 ? { page: r + 1 } : void 0 };
+        i =
+          n.id === `genre-spotlight`
+            ? e.title.replace(/^Spotlight:\s*/, ``)
+            : void 0,
+        a = (await R(n.endpoint, r, { genre: i, timeframe: n.timeframe })).map(
+          (e) => ({
+            type: `simpleCarouselItem`,
+            mangaId: e.id,
+            title: e.title,
+            imageUrl: q(e.mediumImage ?? e.smallImage ?? e.image),
+            subtitle: e.type,
+            contentRating: G(e.isAdult),
+          }),
+        );
+      return { items: a, metadata: a.length === 20 ? { page: r + 1 } : void 0 };
     }
   };
-  function ue(e, t) {
-    let n = J(e);
+  function Ae(e, t) {
+    let n = K(e),
+      r = n.englishTitle || n.title;
     return {
       mangaId: t,
       mangaInfo: {
-        primaryTitle: n.title,
-        secondaryTitles: n.otherNames,
-        thumbnailUrl: K(n.poster.image),
+        primaryTitle: r,
+        secondaryTitles: Array.from(
+          new Set([n.title, ...n.otherNames].map((e) => e.trim())),
+        ).filter((e) => e && e !== r),
+        thumbnailUrl: q(
+          n.poster.mediumImage ?? n.poster.smallImage ?? n.poster.image,
+        ),
         synopsis: n.synopsis,
         author:
           n.authors.length > 0
             ? n.authors.map((e) => e.name).join(`, `)
             : void 0,
         status: n.status,
-        contentRating: q(),
+        contentRating: G(n.isAdult),
         tagGroups:
           n.genres?.length > 0
             ? [
@@ -1462,15 +1698,15 @@ var source = (function (e) {
                 },
               ]
             : [],
-        shareUrl: `${j}/manga/${t}`,
+        shareUrl: `${D}/manga/${t}`,
       },
     };
   }
-  var de = class {
+  var je = class {
       async getMangaDetails(e) {
-        return ue(
-          await P({
-            url: new T(j)
+        return Ae(
+          await L({
+            url: new x(D)
               .addPathComponent(`manga`)
               .addPathComponent(e)
               .toString(),
@@ -1485,37 +1721,34 @@ var source = (function (e) {
         (i(
           this,
           `cookieStorageInterceptor`,
-          new D({ storage: `stateManager` }),
+          new C({ storage: `stateManager` }),
         ),
           i(
             this,
             `globalRateLimiter`,
-            new S(`rateLimiter`, {
+            new b(`rateLimiter`, {
               numberOfRequests: 10,
               bufferInterval: 1,
               ignoreImages: !0,
             }),
           ),
-          i(this, `atsuInterceptor`, new M(`atsumaru-interceptor`)));
+          i(this, `atsuInterceptor`, new he(`atsumaru-interceptor`)));
       }
       async initialise() {
         (this.globalRateLimiter.registerInterceptor(),
           this.cookieStorageInterceptor.registerInterceptor(),
           this.atsuInterceptor.registerInterceptor());
       }
-      async saveCloudflareBypassCookies(e) {
-        for (let t of e)
-          (t.name.startsWith(`cf`) ||
-            t.name.startsWith(`_cf`) ||
-            t.name.startsWith(`__cf`)) &&
-            this.cookieStorageInterceptor.setCookie(t);
-      }
-      async bypassCloudflareRequest(e) {
-        return e;
+      async cloudflareBypassCompleted(e, t, n) {
+        for (let e of t)
+          (e.name.startsWith(`cf`) ||
+            e.name.startsWith(`_cf`) ||
+            e.name.startsWith(`__cf`)) &&
+            this.cookieStorageInterceptor.setCookie(e);
       }
     };
   return (
-    G($, [Q, de, oe, le, W]),
+    ve($, [Z, je, we, ke, me]),
     (e.Atsumaru = new $()),
     (e.AtsumaruExtension = $),
     e
