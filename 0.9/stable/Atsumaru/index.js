@@ -1340,8 +1340,20 @@ var source = (function (e) {
             let originalURL = e.image.startsWith(`http`)
               ? e.image
               : `${j}${e.image}`;
-            let proxyURL = `https://atsumaru-proxy.thomasqt.workers.dev/?url=${encodeURIComponent(originalURL)}`;
 
+            // Does not contain cdn at the start.
+            originalURL = originalURL.replace(
+              "https://atsu.moe/",
+              "https://cdn.atsu.moe/",
+            );
+
+            // If the image is not an AVIF, return the raw original URL directly
+            if (!originalURL.toLowerCase().endsWith(".avif")) {
+              return originalURL;
+            }
+
+            // Is AVIF, convert to JPG to support lower iOS versions.
+            let proxyURL = `https://atsumaru-proxy.thomasqt.workers.dev/?url=${encodeURIComponent(originalURL)}`;
             return `https://wsrv.nl/?url=${encodeURIComponent(proxyURL)}&output=jpg`;
           }),
       };
