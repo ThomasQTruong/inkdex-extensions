@@ -848,8 +848,8 @@ var source = (function (e) {
         : `${E}${t.startsWith(`/`) ? t : `/static/${t}`}`
       : ``;
 
-    // [Thomas] Convert AVIF to JPG if needed.
-    return proxyAvifUrl(originalUrl);
+    // [Thomas] Use .webp instead of .avif.
+    return originalUrl.replace(/\.avif(\?|$)/i, `.webp$1`);
   }
   function L(e) {
     return e.medium === `Novel`
