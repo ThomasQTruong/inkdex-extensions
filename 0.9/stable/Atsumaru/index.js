@@ -1151,11 +1151,14 @@ var source = (function (e) {
       typeof e == `string`
         ? e
         : (e?.posterMedium ?? e?.posterSmall ?? e?.poster);
-    return t
+    let originalUrl = t
       ? t.startsWith(`http`)
         ? t
         : `${D}${t.startsWith(`/`) ? t : `/static/${t}`}`
       : ``;
+
+    // Convert AVIF to JPG if needed.
+    return proxyAvifUrl(originalUrl);
   }
   var ye = class extends h {
     constructor(e) {
@@ -1531,24 +1534,18 @@ var source = (function (e) {
         ).readChapter.pages
           .sort((e, t) => e.number - t.number)
           .map((e) => {
-            let originalURL = e.image.startsWith(`http`)
+            let originalUrl = e.image.startsWith(`http`)
               ? e.image
               : `${D}${e.image}`;
 
             // Does not contain cdn at the start.
-            originalURL = originalURL.replace(
+            originalUrl = originalUrl.replace(
               "https://atsu.moe/",
               "https://cdn.atsu.moe/",
             );
 
-            // If the image is not an AVIF, return the raw original URL directly
-            if (!originalURL.toLowerCase().endsWith(".avif")) {
-              return originalURL;
-            }
-
-            // Is AVIF, convert to JPG to support lower iOS versions.
-            let proxyURL = `https://atsumaru-proxy.thomasqt.workers.dev/?url=${encodeURIComponent(originalURL)}`;
-            return `https://wsrv.nl/?url=${encodeURIComponent(proxyURL)}&output=jpg`;
+            // Convert AVIF to JPG if needed.
+            return proxyAvifUrl(originalUrl);
           }),
       };
     }
@@ -1754,3 +1751,19 @@ var source = (function (e) {
     e
   );
 })({});
+
+function proxyAvifUrl(url) {
+  // Is empty.
+  if (!url) {
+    return "";
+  }
+
+  // If the image is not an AVIF, return the raw original URL directly
+  if (!url.toLowerCase().includes(".avif")) {
+    return url;
+  }
+
+  // Is AVIF, convert to JPG to support lower iOS versions.
+  let proxyUrl = `https://atsumaru-proxy.thomasqt.workers.dev/?url=${encodeURIComponent(url)}`;
+  return `https://wsrv.nl/?url=${encodeURIComponent(proxyUrl)}&output=jpg`;
+}
