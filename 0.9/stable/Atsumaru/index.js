@@ -849,6 +849,7 @@ var source = (function (e) {
         : `${E}${t.startsWith(`/`) ? t : `/static/${t}`}`
       : ``;
     */
+    // Test
 
     // [Thomas] Convert AVIF to JPG if needed.
     return proxyAvifUrl(e);
