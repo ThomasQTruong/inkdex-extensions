@@ -838,6 +838,7 @@ var source = (function (e) {
     });
   }
   function I(e) {
+    /*
     let t =
       typeof e == `string`
         ? e
@@ -847,9 +848,10 @@ var source = (function (e) {
         ? t
         : `${E}${t.startsWith(`/`) ? t : `/static/${t}`}`
       : ``;
+    */
 
     // [Thomas] Convert AVIF to JPG if needed.
-    return proxyAvifUrl(originalUrl);
+    return proxyAvifUrl(e);
   }
   function L(e) {
     return e.medium === `Novel`
@@ -1404,7 +1406,10 @@ var source = (function (e) {
           items: e.items.map((e) => ({
             mangaId: e.id,
             title: e.title,
-            imageUrl: I(e.mediumImage ?? e.smallImage ?? e.image),
+            imageUrl: I(
+              "https://cdn.atsu.moe/static/posters/5aVoMjdCiMDx7p9h-large.avif",
+              // [THOMAS] e.mediumImage ?? e.smallImage ?? e.image
+            ),
             subtitle: L(e),
             contentRating: q(e.isAdult),
           })),
@@ -1473,7 +1478,10 @@ var source = (function (e) {
         items: m.map(({ document: e }) => ({
           mangaId: e.id,
           title: e.englishTitle || e.title || ``,
-          imageUrl: I(e),
+          imageUrl: I(
+            "https://cdn.atsu.moe/static/posters/5aVoMjdCiMDx7p9h-large.avif",
+            // [THOMAS] e
+          ),
           subtitle: L(e),
           contentRating: q(e.isAdult, e.mbContentRating),
         })),
@@ -1744,7 +1752,9 @@ var source = (function (e) {
           type: `simpleCarouselItem`,
           mangaId: e.id,
           title: e.title,
-          imageUrl: I(e.mediumImage ?? e.smallImage ?? e.image),
+          imageUrl: I(
+            "https://cdn.atsu.moe/static/posters/5aVoMjdCiMDx7p9h-large.avif",
+          ), // [THOMAS] e.mediumImage ?? e.smallImage ?? e.image),
           subtitle: L(e),
           contentRating: q(e.isAdult, e.mbContentRating),
         })),
@@ -1764,7 +1774,8 @@ var source = (function (e) {
           new Set([n.title, ...n.otherNames].map((e) => e.trim())),
         ).filter((e) => e && e !== i),
         thumbnailUrl: I(
-          n.poster.mediumImage ?? n.poster.smallImage ?? n.poster.image,
+          "https://cdn.atsu.moe/static/posters/5aVoMjdCiMDx7p9h-large.avif",
+          // [THOMAS] n.poster.mediumImage ?? n.poster.smallImage ?? n.poster.image,
         ),
         synopsis: n.synopsis,
         author:
@@ -1842,6 +1853,7 @@ var source = (function (e) {
 })({});
 
 function proxyAvifUrl(url) {
+  /*
   // Is empty.
   if (!url) {
     return "";
@@ -1851,6 +1863,7 @@ function proxyAvifUrl(url) {
   if (!url.toLowerCase().includes(".avif")) {
     return url;
   }
+  */
 
   // Is AVIF, convert to JPG to support lower iOS versions.
   let proxyUrl = `https://atsumaru-proxy.thomasqt.workers.dev/?url=${encodeURIComponent(url)}`;
